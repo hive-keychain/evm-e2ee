@@ -98,7 +98,7 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: /keychain evm test dashboard/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('heading', { name: /^native transfer$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^send transaction$/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /request \/ result inspector/i })).toBeInTheDocument();
   });
 
@@ -111,11 +111,11 @@ describe('App', () => {
     renderApp(adapter);
 
     await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
-    await screen.findByRole('heading', { name: /^native transfer$/i });
+    await screen.findByRole('heading', { name: /^send transaction$/i });
 
     await user.type(screen.getByLabelText(/^to$/i), '0x2222222222222222222222222222222222222222');
     await user.type(screen.getByLabelText(/^value$/i), '1000');
-    await user.click(screen.getByRole('button', { name: /send native transfer/i }));
+    await user.click(screen.getByRole('button', { name: /send transaction/i }));
 
     expect(screen.getByText(/^loading$/i)).toBeInTheDocument();
 
@@ -160,11 +160,11 @@ describe('App', () => {
     renderApp(adapter);
 
     await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
-    await screen.findByRole('heading', { name: /^native transfer$/i });
+    await screen.findByRole('heading', { name: /^send transaction$/i });
 
     await user.type(screen.getByLabelText(/^to$/i), '0x2222222222222222222222222222222222222222');
     await user.type(screen.getByLabelText(/^value$/i), '1000');
-    await user.click(screen.getByRole('button', { name: /send native transfer/i }));
+    await user.click(screen.getByRole('button', { name: /send transaction/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/^error$/i)).toBeInTheDocument();
