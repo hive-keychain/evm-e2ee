@@ -18,7 +18,10 @@ export function LockedState({
   return (
     <div className="locked-shell">
       <div className="locked-card">
-        <span className="eyebrow">Keychain EVM Dashboard</span>
+        <div className="brand-lockup">
+          <img className="brand-mark" src="/favicon.png" alt="Keychain logo" />
+          <span className="eyebrow">Keychain EVM Dashboard</span>
+        </div>
         <h1>Connect an EVM account to unlock the test dashboard.</h1>
         <p>
           The dashboard stays locked until a wallet connection is established through Keychain.

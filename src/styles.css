@@ -130,6 +130,25 @@ pre {
   margin-bottom: 24px;
 }
 
+.dashboard-heading {
+  min-width: 0;
+}
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
 .dashboard-header h1,
 .locked-card h1 {
   margin: 8px 0 10px;
@@ -570,5 +589,10 @@ pre {
 
   .locked-card {
     padding: 24px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
   }
 }

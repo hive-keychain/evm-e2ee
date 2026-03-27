@@ -543,8 +543,11 @@ export default function App({ adapter, detectedProviders }: AppProps) {
 
       <main className="dashboard-main">
         <header className="dashboard-header">
-          <div>
-            <span className="eyebrow">Connected Session</span>
+          <div className="dashboard-heading">
+            <div className="brand-lockup">
+              <img className="brand-mark" src="/favicon.png" alt="Keychain logo" />
+              <span className="eyebrow">Connected Session</span>
+            </div>
             <h1>Keychain EVM Test Dashboard</h1>
             <p>Use these cards to manually build and send EVM requests through Keychain.</p>
           </div>
