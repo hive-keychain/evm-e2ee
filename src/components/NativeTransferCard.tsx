@@ -28,7 +28,7 @@ export function NativeTransferCard({ status, onSubmit }: NativeTransferCardProps
 
   return (
     <ActionCard
-      title="Native Transfer"
+      title="Send Transaction"
       description="Build and send a raw EVM native asset transfer through Keychain."
     >
       <form
@@ -137,7 +137,7 @@ export function NativeTransferCard({ status, onSubmit }: NativeTransferCardProps
 
         <div className="card-actions">
           <button className="primary-button" type="submit" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Sending...' : 'Send Native Transfer'}
+            {status === 'loading' ? 'Sending...' : 'Send Transaction'}
           </button>
         </div>
       </form>
