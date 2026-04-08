@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -38,6 +38,10 @@ class MockAdapter implements KeychainAdapter {
   ]);
 
   getChainId = vi.fn<() => Promise<string>>().mockResolvedValue('0x1');
+
+  request = vi.fn<(method: string, params?: unknown[] | Record<string, unknown>) => Promise<unknown>>().mockResolvedValue(
+    'request-response',
+  );
 
   sendTransaction = vi.fn<(request: NormalizedTransactionRequest) => Promise<string>>().mockResolvedValue(
     '0xtxhash',
@@ -82,20 +86,20 @@ function renderApp(adapter: KeychainAdapter, detectedProviders?: DetectedWalletP
 }
 
 describe('App', () => {
-  it('renders the locked state before connecting and unlocks after connect', async () => {
+  it('renders the dashboard immediately and connects from the sidebar', async () => {
     const user = userEvent.setup();
     const adapter = new MockAdapter();
 
     renderApp(adapter);
 
-    expect(
-      screen.getByText(/connect an evm account to unlock the test dashboard/i),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /keychain evm test dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /connect wallet/i })).toBeInTheDocument();
+    expect(screen.queryByText(/unlock the test dashboard/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /keychain evm test dashboard/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^connection$/i })).toBeInTheDocument();
     });
 
     expect(screen.getByRole('heading', { name: /^send transaction$/i })).toBeInTheDocument();
@@ -127,6 +131,77 @@ describe('App', () => {
 
     expect(screen.getByText(/native transfer submitted/i)).toBeInTheDocument();
     expect(screen.getByText(/0xtxhash/i)).toBeInTheDocument();
+  });
+
+  it('submits a permissionless EVM request multiple times', async () => {
+    const user = userEvent.setup();
+    const adapter = new MockAdapter();
+
+    renderApp(adapter);
+
+    await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
+    await screen.findByRole('heading', { name: /permissionless evm request/i });
+
+    fireEvent.change(screen.getByLabelText(/^method$/i), {
+      target: { value: 'web3_clientVersion' },
+    });
+    await user.type(screen.getByLabelText(/repeat count/i), '3');
+    await user.click(screen.getByRole('button', { name: /submit request/i }));
+
+    await waitFor(() => {
+      expect(adapter.request).toHaveBeenCalledTimes(3);
+    });
+
+    expect(adapter.request).toHaveBeenNthCalledWith(1, 'web3_clientVersion', []);
+    expect(adapter.request).toHaveBeenNthCalledWith(2, 'web3_clientVersion', []);
+    expect(adapter.request).toHaveBeenNthCalledWith(3, 'web3_clientVersion', []);
+    expect(screen.getByText(/completed 3 times/i)).toBeInTheDocument();
+  });
+
+  it('defaults permissionless EVM requests to one submission when repeat count is empty', async () => {
+    const user = userEvent.setup();
+    const adapter = new MockAdapter();
+
+    renderApp(adapter);
+
+    await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
+    await screen.findByRole('heading', { name: /permissionless evm request/i });
+
+    fireEvent.change(screen.getByLabelText(/^method$/i), {
+      target: { value: 'wallet_switchEthereumChain' },
+    });
+    fireEvent.change(screen.getByLabelText(/params json/i), {
+      target: { value: '{"chainId":"0x89"}' },
+    });
+    await user.click(screen.getByRole('button', { name: /submit request/i }));
+
+    await waitFor(() => {
+      expect(adapter.request).toHaveBeenCalledTimes(1);
+    });
+
+    expect(adapter.request).toHaveBeenCalledWith('wallet_switchEthereumChain', {
+      chainId: '0x89',
+    });
+  });
+
+  it('prefills permissionless params for recognized methods', async () => {
+    const user = userEvent.setup();
+    const adapter = new MockAdapter();
+
+    renderApp(adapter);
+
+    await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
+    await screen.findByRole('heading', { name: /permissionless evm request/i });
+
+    expect(screen.getByLabelText(/params json/i)).toHaveValue('[\n  {\n    "chainId": "0x64"\n  }\n]');
+
+    fireEvent.change(screen.getByLabelText(/^method$/i), {
+      target: { value: 'eth_getBalance' },
+    });
+
+    expect(screen.getByLabelText(/params json/i)).toHaveValue(
+      '[\n  "0x0000000000000000000000000000000000000000",\n  "latest"\n]',
+    );
   });
 
   it('records provider events and emits toasts for account and chain changes', async () => {

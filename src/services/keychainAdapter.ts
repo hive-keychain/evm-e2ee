@@ -37,6 +37,7 @@ export interface KeychainAdapter {
   connect(): Promise<ConnectResult>;
   getAccounts(): Promise<string[]>;
   getChainId(): Promise<string>;
+  request(method: string, params?: unknown[] | Record<string, unknown>): Promise<unknown>;
   sendTransaction(request: NormalizedTransactionRequest): Promise<string>;
   call(request: NormalizedCallRequest): Promise<string>;
   onAccountsChanged(listener: (accounts: string[]) => void): void;
@@ -75,6 +76,13 @@ export class BrowserKeychainAdapter implements KeychainAdapter {
 
   async getChainId(): Promise<string> {
     return (await this.getProvider().request({ method: 'eth_chainId' })) as string;
+  }
+
+  async request(method: string, params?: unknown[] | Record<string, unknown>): Promise<unknown> {
+    return this.getProvider().request({
+      method,
+      params,
+    });
   }
 
   async sendTransaction(request: NormalizedTransactionRequest): Promise<string> {

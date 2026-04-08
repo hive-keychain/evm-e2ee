@@ -70,6 +70,12 @@ export interface NativeTransferFormValues {
   data: string;
 }
 
+export interface PermissionlessEvmRequestFormValues {
+  method: string;
+  rawParams: string;
+  repeatCount: string;
+}
+
 export interface NormalizedTransactionRequest {
   from: string;
   to?: string;

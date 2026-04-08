@@ -4,8 +4,8 @@ import { decodeFunctionResult } from 'viem';
 import { AbiActionCard } from './components/AbiActionCard';
 import { ContractDeploymentCard } from './components/ContractDeploymentCard';
 import { FixedPanel } from './components/FixedPanel';
-import { LockedState } from './components/LockedState';
 import { NativeTransferCard } from './components/NativeTransferCard';
+import { PermissionlessEvmRequestCard } from './components/PermissionlessEvmRequestCard';
 import { useToast } from './components/ToastProvider';
 import { erc20Functions, erc721Functions, erc1155Functions } from './config/abi';
 import { deployableContracts } from './config/deployables';
@@ -25,6 +25,7 @@ import type {
   EventLogEntry,
   InspectorState,
   NativeTransferFormValues,
+  PermissionlessEvmRequestFormValues,
 } from './types';
 import {
   buildContractFunctionRequest,
@@ -59,6 +60,54 @@ function getErrorMessage(error: unknown): string {
 
 function mergeAccounts(currentAccounts: string[], nextAccounts: string[]): string[] {
   return [...new Set([...currentAccounts, ...nextAccounts])];
+}
+
+function parsePermissionlessParams(rawParams: string): unknown[] | Record<string, unknown> | undefined {
+  const trimmedParams = rawParams.trim();
+  if (!trimmedParams) {
+    return undefined;
+  }
+
+  const parsedParams = JSON.parse(trimmedParams) as unknown;
+  if (Array.isArray(parsedParams)) {
+    return parsedParams;
+  }
+
+  if (parsedParams && typeof parsedParams === 'object') {
+    return parsedParams as Record<string, unknown>;
+  }
+
+  throw new Error('Params JSON must be an array or an object.');
+}
+
+function parseRepeatCount(rawRepeatCount: string): number {
+  const trimmedRepeatCount = rawRepeatCount.trim();
+  if (!trimmedRepeatCount) {
+    return 1;
+  }
+
+  const repeatCount = Number.parseInt(trimmedRepeatCount, 10);
+  if (!Number.isFinite(repeatCount) || repeatCount < 1) {
+    throw new Error('Repeat count must be a positive integer.');
+  }
+
+  return repeatCount;
+}
+
+function requireConnectedAccount(
+  activeAccount: string | undefined,
+  pushToast: ReturnType<typeof useToast>['pushToast'],
+): activeAccount is string {
+  if (activeAccount) {
+    return true;
+  }
+
+  pushToast({
+    tone: 'info',
+    title: 'Connect a wallet first',
+    message: 'Connect an EVM account from the sidebar before sending account-based requests.',
+  });
+  return false;
 }
 
 export default function App({ adapter, detectedProviders }: AppProps) {
@@ -310,7 +359,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
   }
 
   async function submitNativeTransfer(values: NativeTransferFormValues) {
-    if (!connection.activeAccount) {
+    if (!requireConnectedAccount(connection.activeAccount, pushToast)) {
       return;
     }
 
@@ -350,7 +399,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
     deployable: DeployableContractConfig,
     values: Record<string, string>,
   ) {
-    if (!connection.activeAccount) {
+    if (!requireConnectedAccount(connection.activeAccount, pushToast)) {
       return;
     }
 
@@ -397,7 +446,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
     contractAddress: string,
     values: Record<string, string>,
   ) {
-    if (!connection.activeAccount) {
+    if (!requireConnectedAccount(connection.activeAccount, pushToast)) {
       return;
     }
 
@@ -477,6 +526,57 @@ export default function App({ adapter, detectedProviders }: AppProps) {
     }
   }
 
+  async function submitPermissionlessEvmRequest(values: PermissionlessEvmRequestFormValues) {
+    try {
+      const params = parsePermissionlessParams(values.rawParams);
+      const repeatCount = parseRepeatCount(values.repeatCount);
+      const requestPayload = {
+        method: values.method,
+        params,
+        action: 'permissionlessEvmRequest',
+        repeatCount,
+      };
+
+      await executeKeychainRequest(
+        requestPayload,
+        async () => {
+          const responses: unknown[] = [];
+
+          for (let runIndex = 0; runIndex < repeatCount; runIndex += 1) {
+            const response = await resolvedAdapter.request(values.method, params);
+            responses.push(response);
+          }
+
+          return {
+            method: values.method,
+            repeatCount,
+            responses,
+          };
+        },
+        {
+          onRequestStart: updateInspectorStart,
+          onRequestSuccess: updateInspectorSuccess,
+          onRequestError: (error) => {
+            updateInspectorError(error);
+            appendEvent('requestError', { scope: values.method, error });
+          },
+        },
+      );
+
+      pushToast({
+        tone: 'success',
+        title: 'Permissionless request submitted',
+        message: `${values.method} completed ${repeatCount} time${repeatCount === 1 ? '' : 's'}.`,
+      });
+    } catch (error) {
+      pushToast({
+        tone: 'error',
+        title: 'Permissionless request failed',
+        message: getErrorMessage(error),
+      });
+    }
+  }
+
   useEffect(() => {
     if (!connection.isConnected) {
       resolvedAdapter.removeListeners();
@@ -521,24 +621,19 @@ export default function App({ adapter, detectedProviders }: AppProps) {
     };
   }, [connection.isConnected, resolvedAdapter]);
 
-  if (!connection.isConnected) {
-    return (
-      <LockedState
-        providers={availableProviders}
-        providerReady={connection.providerReady}
-        connectingProviderId={connectingProviderId}
-        onConnect={connectWallet}
-      />
-    );
-  }
-
   return (
     <div className="app-shell">
       <FixedPanel
+        providers={availableProviders}
+        providerReady={connection.providerReady}
+        isConnected={connection.isConnected}
+        connectingProviderId={connectingProviderId}
         accounts={connection.accounts}
         chainId={connection.chainId}
         events={eventLog}
         inspector={inspector}
+        onConnect={connectWallet}
+        onAddAnotherAccount={addAnotherAccount}
       />
 
       <main className="dashboard-main">
@@ -546,7 +641,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
           <div className="dashboard-heading">
             <div className="brand-lockup">
               <img className="brand-mark" src="/favicon.png" alt="Keychain logo" />
-              <span className="eyebrow">Connected Session</span>
+              <span className="eyebrow">Keychain EVM Dashboard</span>
             </div>
             <h1>Keychain EVM Test Dashboard</h1>
             <p>Use these cards to manually build and send EVM requests through Keychain.</p>
@@ -569,6 +664,10 @@ export default function App({ adapter, detectedProviders }: AppProps) {
 
         <section className="dashboard-grid">
           <NativeTransferCard status={inspector.status} onSubmit={submitNativeTransfer} />
+          <PermissionlessEvmRequestCard
+            status={inspector.status}
+            onSubmit={submitPermissionlessEvmRequest}
+          />
           <ContractDeploymentCard
             deployables={deployableContracts}
             status={inspector.status}

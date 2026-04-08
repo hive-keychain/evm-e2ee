@@ -9,11 +9,12 @@ import {
 } from '../services/keychainAdapter';
 
 describe('BrowserKeychainAdapter', () => {
-  it('uses the expected EIP-1193 methods for connect, call, and sendTransaction', async () => {
+  it('uses the expected EIP-1193 methods for connect, generic requests, call, and sendTransaction', async () => {
     const request = vi
       .fn<Eip1193Provider['request']>()
       .mockResolvedValueOnce(['0x1111111111111111111111111111111111111111'])
       .mockResolvedValueOnce('0x1')
+      .mockResolvedValueOnce('Keychain/1.0.0')
       .mockResolvedValueOnce('0xresponse')
       .mockResolvedValueOnce('0xtxhash');
     const on = vi.fn();
@@ -29,6 +30,8 @@ describe('BrowserKeychainAdapter', () => {
       accounts: ['0x1111111111111111111111111111111111111111'],
       chainId: '0x1',
     });
+
+    await expect(adapter.request('web3_clientVersion')).resolves.toBe('Keychain/1.0.0');
 
     await expect(
       adapter.call({
@@ -53,6 +56,10 @@ describe('BrowserKeychainAdapter', () => {
     expect(request).toHaveBeenNthCalledWith(1, { method: 'eth_requestAccounts' });
     expect(request).toHaveBeenNthCalledWith(2, { method: 'eth_chainId' });
     expect(request).toHaveBeenNthCalledWith(3, {
+      method: 'web3_clientVersion',
+      params: undefined,
+    });
+    expect(request).toHaveBeenNthCalledWith(4, {
       method: 'eth_call',
       params: [
         {
@@ -63,7 +70,7 @@ describe('BrowserKeychainAdapter', () => {
         'latest',
       ],
     });
-    expect(request).toHaveBeenNthCalledWith(4, {
+    expect(request).toHaveBeenNthCalledWith(5, {
       method: 'eth_sendTransaction',
       params: [
         {
