@@ -51,7 +51,7 @@ export interface AbiFunctionConfig {
 }
 
 export interface DeployableContractConfig {
-  id: 'generic' | 'erc20' | 'erc721' | 'erc1155';
+  id: 'generic' | 'error' | 'erc20' | 'erc721' | 'erc1155';
   label: string;
   description?: string;
   bytecode: Hex;

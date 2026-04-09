@@ -13,6 +13,14 @@ export const deployableContracts: DeployableContractConfig[] = [
     constructorAbi: [],
   },
   {
+    id: 'error',
+    label: 'Error',
+    description: 'Placeholder creation bytecode for error deployment smoke tests.',
+    bytecode:   '0x6080604052348015600f57600080fd5b50600080fdfea2646970667358221220000000000000000000000000000000000000000000000000000000000000000064736f6c634300081a0033'    ,
+    constructorInputs: [],
+    constructorAbi: [],
+  },
+  {
     id: 'erc20',
     label: 'ERC-20',
     description: 'Sample ERC-20 bytecode placeholder. Replace with compiled artifact output later.',
