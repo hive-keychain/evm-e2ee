@@ -3,7 +3,7 @@
 export const permissionlessEvmMethods = [
   'wallet_switchEthereumChain',
   'wallet_revokePermissions',
-  'wallet_watchAssets',
+  'wallet_watchAsset',
   'eth_accounts',
   'eth_blockNumber',
   'eth_call',

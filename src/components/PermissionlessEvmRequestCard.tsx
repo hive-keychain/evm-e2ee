@@ -38,8 +38,7 @@ export function PermissionlessEvmRequestCard({
 
   return (
     <ActionCard
-      title="Permissionless EVM Request"
-      description="Send any Keychain-supported EVM method that does not require prior permission."
+      title="EVM Requests"
     >
       <form
         className="card-form"

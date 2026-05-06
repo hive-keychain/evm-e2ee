@@ -21,7 +21,7 @@ const noParamsMethods = new Set([
 ]);
 
 const methodPresets: Record<string, PermissionlessMethodPreset> = {
-  wallet_watchAssets: {
+  wallet_watchAsset: [{
     type: 'ERC20',
     options: {
       address: '0x0000000000000000000000000000000000000000',
@@ -29,7 +29,7 @@ const methodPresets: Record<string, PermissionlessMethodPreset> = {
       decimals: 18,
       image: '',
     },
-  },
+  }],
   wallet_switchEthereumChain: [{ chainId: '0x64' }],
   wallet_revokePermissions: [{ eth_accounts: {} }],
   eth_call: [
