@@ -9,6 +9,8 @@ interface ConnectionCardProps {
   connectingProviderId: string | null;
   onConnect: (providerId: string) => Promise<void>;
   onAddAnotherAccount: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
+  isDisconnecting: boolean;
 }
 
 export function ConnectionCard({
@@ -18,7 +20,11 @@ export function ConnectionCard({
   connectingProviderId,
   onConnect,
   onAddAnotherAccount,
+  onDisconnect,
+  isDisconnecting,
 }: ConnectionCardProps) {
+  const isBusy = connectingProviderId !== null || isDisconnecting;
+
   return (
     <section className="panel-card">
       <header className="card-header">
@@ -40,7 +46,7 @@ export function ConnectionCard({
               className="primary-button provider-button"
               type="button"
               onClick={() => void onConnect(provider.id)}
-              disabled={connectingProviderId !== null}
+              disabled={isBusy}
             >
               <span aria-hidden="true" className="provider-icon-shell">
                 <img className="provider-icon-image" src={provider.icon} alt="" />
@@ -58,9 +64,20 @@ export function ConnectionCard({
               className="primary-button"
               type="button"
               onClick={() => void onAddAnotherAccount()}
-              disabled={connectingProviderId !== null}
+              disabled={isBusy}
             >
               Add Another Account
+            </button>
+          ) : null}
+
+          {isConnected ? (
+            <button
+              className="primary-button secondary-button"
+              type="button"
+              onClick={() => void onDisconnect()}
+              disabled={isBusy}
+            >
+              {isDisconnecting ? 'Disconnecting...' : 'Disconnect Wallet'}
             </button>
           ) : null}
         </div>

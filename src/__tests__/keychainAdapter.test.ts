@@ -16,7 +16,8 @@ describe('BrowserKeychainAdapter', () => {
       .mockResolvedValueOnce('0x1')
       .mockResolvedValueOnce('Keychain/1.0.0')
       .mockResolvedValueOnce('0xresponse')
-      .mockResolvedValueOnce('0xtxhash');
+      .mockResolvedValueOnce('0xtxhash')
+      .mockResolvedValueOnce(null);
     const on = vi.fn();
     const removeListener = vi.fn();
 
@@ -49,6 +50,8 @@ describe('BrowserKeychainAdapter', () => {
       }),
     ).resolves.toBe('0xtxhash');
 
+    await expect(adapter.disconnect()).resolves.toBeNull();
+
     adapter.onAccountsChanged(() => undefined);
     adapter.onChainChanged(() => undefined);
     adapter.removeListeners();
@@ -79,6 +82,10 @@ describe('BrowserKeychainAdapter', () => {
           data: '0x1234',
         },
       ],
+    });
+    expect(request).toHaveBeenNthCalledWith(6, {
+      method: 'wallet_revokePermissions',
+      params: [{ eth_accounts: {} }],
     });
     expect(on).toHaveBeenCalledTimes(2);
     expect(removeListener).toHaveBeenCalledTimes(2);

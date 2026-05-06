@@ -18,6 +18,8 @@ interface FixedPanelProps {
   inspector: InspectorState;
   onConnect: (providerId: string) => Promise<void>;
   onAddAnotherAccount: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
+  isDisconnecting: boolean;
 }
 
 export function FixedPanel({
@@ -31,6 +33,8 @@ export function FixedPanel({
   inspector,
   onConnect,
   onAddAnotherAccount,
+  onDisconnect,
+  isDisconnecting,
 }: FixedPanelProps) {
   return (
     <aside className="fixed-panel">
@@ -41,6 +45,8 @@ export function FixedPanel({
         connectingProviderId={connectingProviderId}
         onConnect={onConnect}
         onAddAnotherAccount={onAddAnotherAccount}
+        onDisconnect={onDisconnect}
+        isDisconnecting={isDisconnecting}
       />
       <EventMonitorCard accounts={accounts} chainId={chainId} events={events} />
       <InspectorCard inspector={inspector} />

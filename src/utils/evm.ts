@@ -111,6 +111,8 @@ export function buildNativeTransferRequest(
     from,
     to: values.to.trim(),
     value: normalizeNumberish(values.value) ?? (() => { throw new Error('Transfer value is required.'); })(),
+    chainId: normalizeHexData(values.chainId),
+    type: normalizeHexData(values.type),
     gas: normalizeNumberish(values.gasLimit),
     gasPrice: normalizeNumberish(values.gasPrice),
     maxFeePerGas: normalizeNumberish(values.maxFeePerGas),

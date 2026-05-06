@@ -12,6 +12,8 @@ describe('EVM request builders', () => {
       {
         to: '0x1111111111111111111111111111111111111111',
         value: '1000',
+        chainId: '0x1',
+        type: '0x2',
         gasLimit: '21000',
         gasPrice: '20000000000',
         maxFeePerGas: '',
@@ -26,6 +28,8 @@ describe('EVM request builders', () => {
       from: '0x2222222222222222222222222222222222222222',
       to: '0x1111111111111111111111111111111111111111',
       value: '0x3e8',
+      chainId: '0x1',
+      type: '0x2',
       gas: '0x5208',
       gasPrice: '0x4a817c800',
       nonce: '0x1',

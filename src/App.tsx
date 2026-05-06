@@ -133,6 +133,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
   const [inspector, setInspector] = useState<InspectorState>(defaultInspectorState);
   const [eventLog, setEventLog] = useState<EventLogEntry[]>([]);
   const [connectingProviderId, setConnectingProviderId] = useState<string | null>(null);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const eventIdRef = useRef(1);
   const { pushToast } = useToast();
 
@@ -355,6 +356,60 @@ export default function App({ adapter, detectedProviders }: AppProps) {
         title: 'Connect account failed',
         message: getErrorMessage(error),
       });
+    }
+  }
+
+  async function disconnectWallet() {
+    if (!connection.isConnected) {
+      return;
+    }
+
+    setIsDisconnecting(true);
+
+    try {
+      const response = await executeKeychainRequest(
+        {
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }],
+          action: 'disconnect',
+        },
+        () => resolvedAdapter.disconnect(),
+        {
+          onRequestStart: updateInspectorStart,
+          onRequestSuccess: updateInspectorSuccess,
+          onRequestError: (error) => {
+            updateInspectorError(error);
+            appendEvent('requestError', { scope: 'disconnect', error });
+          },
+        },
+      );
+
+      setConnection((currentConnection) => ({
+        ...currentConnection,
+        isConnected: false,
+        providerReady: true,
+        accounts: [],
+        activeAccount: undefined,
+        chainId: undefined,
+        connectedProviderName: undefined,
+      }));
+      appendEvent('disconnect', {
+        method: 'wallet_revokePermissions',
+        response,
+      });
+      pushToast({
+        tone: 'success',
+        title: 'Wallet disconnected',
+        message: 'Keychain account permissions were revoked.',
+      });
+    } catch (error) {
+      pushToast({
+        tone: 'error',
+        title: 'Disconnect failed',
+        message: getErrorMessage(error),
+      });
+    } finally {
+      setIsDisconnecting(false);
     }
   }
 
@@ -634,6 +689,8 @@ export default function App({ adapter, detectedProviders }: AppProps) {
         inspector={inspector}
         onConnect={connectWallet}
         onAddAnotherAccount={addAnotherAccount}
+        onDisconnect={disconnectWallet}
+        isDisconnecting={isDisconnecting}
       />
 
       <main className="dashboard-main">
@@ -643,7 +700,7 @@ export default function App({ adapter, detectedProviders }: AppProps) {
               <img className="brand-mark" src="/favicon.png" alt="Keychain logo" />
               <span className="eyebrow">Keychain EVM Dashboard</span>
             </div>
-            <h1>Keychain EVM Test Dashboard</h1>
+            <h1>EVM Requests</h1>
             <p>Use these cards to manually build and send EVM requests through Keychain.</p>
           </div>
           <div className="session-summary">

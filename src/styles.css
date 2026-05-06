@@ -301,6 +301,17 @@ pre {
   box-shadow: 0 13px 9px 0 var(--button-shadow-color);
 }
 
+.secondary-button {
+  background: transparent;
+  color: var(--main-font-color);
+  border: 1px solid var(--card-border);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
 .provider-button {
   display: inline-flex;
   align-items: center;

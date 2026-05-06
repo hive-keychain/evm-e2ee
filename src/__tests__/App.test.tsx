@@ -33,6 +33,8 @@ class MockAdapter implements KeychainAdapter {
     chainId: '0x1',
   });
 
+  disconnect = vi.fn<() => Promise<unknown>>().mockResolvedValue(null);
+
   getAccounts = vi.fn<() => Promise<string[]>>().mockResolvedValue([
     '0x1111111111111111111111111111111111111111',
   ]);
@@ -92,7 +94,7 @@ describe('App', () => {
 
     renderApp(adapter);
 
-    expect(screen.getByRole('heading', { name: /keychain evm test dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /evm requests/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /connect wallet/i })).toBeInTheDocument();
     expect(screen.queryByText(/unlock the test dashboard/i)).not.toBeInTheDocument();
 
@@ -119,6 +121,8 @@ describe('App', () => {
 
     await user.type(screen.getByLabelText(/^to$/i), '0x2222222222222222222222222222222222222222');
     await user.type(screen.getByLabelText(/^value$/i), '1000');
+    await user.type(screen.getByLabelText(/^chainId$/i), '0x1');
+    await user.selectOptions(screen.getByLabelText(/transaction type/i), '0x2');
     await user.click(screen.getByRole('button', { name: /send transaction/i }));
 
     expect(screen.getByText(/^loading$/i)).toBeInTheDocument();
@@ -129,6 +133,12 @@ describe('App', () => {
       expect(screen.getByText(/^success$/i)).toBeInTheDocument();
     });
 
+    expect(adapter.sendTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: '0x1',
+        type: '0x2',
+      }),
+    );
     expect(screen.getByText(/native transfer submitted/i)).toBeInTheDocument();
     expect(screen.getByText(/0xtxhash/i)).toBeInTheDocument();
   });
@@ -227,6 +237,27 @@ describe('App', () => {
     expect(screen.getByText(/chain changed/i)).toBeInTheDocument();
   });
 
+  it('revokes wallet permissions and clears connection state when disconnecting', async () => {
+    const user = userEvent.setup();
+    const adapter = new MockAdapter();
+
+    renderApp(adapter);
+
+    await user.click(screen.getByRole('button', { name: /connect injected provider/i }));
+    await screen.findByRole('heading', { name: /^connection$/i });
+
+    await user.click(screen.getByRole('button', { name: /disconnect wallet/i }));
+
+    await waitFor(() => {
+      expect(adapter.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByRole('heading', { name: /connect wallet/i })).toBeInTheDocument();
+    expect(screen.getByText(/wallet disconnected/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/wallet_revokePermissions/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/unavailable/i).length).toBeGreaterThan(0);
+  });
+
   it('shows request errors in the inspector when a transaction fails', async () => {
     const user = userEvent.setup();
     const adapter = new MockAdapter();
@@ -242,7 +273,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /send transaction/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/^error$/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/^error$/i).length).toBeGreaterThan(0);
     });
 
     expect(screen.getAllByText(/rejected by provider/i).length).toBeGreaterThan(0);

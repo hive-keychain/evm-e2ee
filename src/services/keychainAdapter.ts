@@ -35,6 +35,7 @@ export interface DetectedWalletProvider {
 export interface KeychainAdapter {
   isAvailable(): boolean;
   connect(): Promise<ConnectResult>;
+  disconnect(): Promise<unknown>;
   getAccounts(): Promise<string[]>;
   getChainId(): Promise<string>;
   request(method: string, params?: unknown[] | Record<string, unknown>): Promise<unknown>;
@@ -68,6 +69,13 @@ export class BrowserKeychainAdapter implements KeychainAdapter {
     const chainId = await this.getChainId();
 
     return { accounts, chainId };
+  }
+
+  async disconnect(): Promise<unknown> {
+    return this.getProvider().request({
+      method: 'wallet_revokePermissions',
+      params: [{ eth_accounts: {} }],
+    });
   }
 
   async getAccounts(): Promise<string[]> {

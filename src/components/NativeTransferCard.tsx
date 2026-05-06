@@ -8,9 +8,19 @@ interface NativeTransferCardProps {
   onSubmit: (values: NativeTransferFormValues) => Promise<void>;
 }
 
+const transactionTypeOptions = [
+  { value: '0x0', label: '0x0 (Legacy)' },
+  { value: '0x1', label: '0x1 (Access List - EIP-2930)' },
+  { value: '0x2', label: '0x2 (Dynamic Fees EIP-1559)' },
+  { value: '0x3', label: '0x3 (Blob EIP-4844)' },
+  { value: '0x4', label: '0x4 (EIP-7702)' },
+] as const;
+
 const initialValues: NativeTransferFormValues = {
   to: '',
   value: '',
+  chainId: '',
+  type: '',
   gasLimit: '',
   gasPrice: '',
   maxFeePerGas: '',
@@ -61,6 +71,35 @@ export function NativeTransferCard({ status, onSubmit }: NativeTransferCardProps
               placeholder="10000000000000000"
               onChange={(event) => updateValue('value', event.target.value)}
             />
+          </label>
+
+          <label className="field-label" htmlFor="native-chain-id">
+            <span>chainId</span>
+            <input
+              id="native-chain-id"
+              className="field-input"
+              type="text"
+              value={values.chainId}
+              placeholder="0x1"
+              onChange={(event) => updateValue('chainId', event.target.value)}
+            />
+          </label>
+
+          <label className="field-label" htmlFor="native-transaction-type">
+            <span>Transaction Type</span>
+            <select
+              id="native-transaction-type"
+              className="field-input"
+              value={values.type}
+              onChange={(event) => updateValue('type', event.target.value)}
+            >
+              <option value="">Use wallet default</option>
+              {transactionTypeOptions.map((transactionType) => (
+                <option key={transactionType.value} value={transactionType.value}>
+                  {transactionType.label}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="field-label" htmlFor="native-gas-limit">

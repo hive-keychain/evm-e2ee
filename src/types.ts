@@ -62,6 +62,8 @@ export interface DeployableContractConfig {
 export interface NativeTransferFormValues {
   to: string;
   value: string;
+  chainId: string;
+  type: string;
   gasLimit: string;
   gasPrice: string;
   maxFeePerGas: string;
@@ -80,6 +82,8 @@ export interface NormalizedTransactionRequest {
   from: string;
   to?: string;
   value?: Hex;
+  chainId?: Hex;
+  type?: Hex;
   gas?: Hex;
   gasPrice?: Hex;
   maxFeePerGas?: Hex;
