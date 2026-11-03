@@ -57,4 +57,5 @@ export const permissionlessEvmMethods = [
   'kc_lookupEns',
   'wallet_getCapabilities',
   'wallet_sendCalls',
+  'wallet_getCallsStatus',
 ] as const;

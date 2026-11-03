@@ -21,6 +21,9 @@ const noParamsMethods = new Set([
 ]);
 
 const methodPresets: Record<string, PermissionlessMethodPreset> = {
+  wallet_getCallsStatus: [
+    '0x0000000000000000000000000000000000000000000000000000000000000000',
+  ],
   wallet_sendCalls: [{
     version: '2.0.0',
     from: '0xa22c23883cb845eff9ae7b2852f658587ae60148',
