@@ -39,6 +39,7 @@ export function PermissionlessEvmRequestCard({
   return (
     <ActionCard
       title="EVM Requests"
+      description="Send any EVM JSON-RPC method through Keychain. Recognized methods fill in example params."
     >
       <form
         className="card-form"
