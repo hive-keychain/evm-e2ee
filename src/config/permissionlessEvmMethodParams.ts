@@ -21,6 +21,24 @@ const noParamsMethods = new Set([
 ]);
 
 const methodPresets: Record<string, PermissionlessMethodPreset> = {
+  wallet_sendCalls: [{
+    version: '2.0.0',
+    from: '0xa22c23883cb845eff9ae7b2852f658587ae60148',
+    chainId: '0x1',
+    atomicRequired: false,
+    calls: [
+      {
+        to: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+        data: '0x654365436543',
+        value: '0x3B9ACA00',
+      },
+      {
+        to: '0xbc2114a988e9CEf5bA63548D432024f34B487048',
+        data: '0x789078907890',
+        value: '0x1DCD6500',
+      },
+    ],
+  }],
   wallet_watchAsset: [{
     type: 'ERC20',
     options: {
